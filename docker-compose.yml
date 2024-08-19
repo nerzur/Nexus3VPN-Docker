@@ -1,0 +1,37 @@
+version: "3.9"
+name: nexus3-with-vpn
+services:
+  
+  vpn:
+    container_name: vpn
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - OPENVPN_USER=SECRET
+      - OPENVPN_PASSWORD=SECRET
+      - SERVER_COUNTRIES=United States
+      - FREE_ONLY=on
+    networks:
+      - mynetwork
+    ports:
+      - 51413:51413
+      - 51413:51413/udp
+      - 24002:8081
+    restart: always
+  
+  nexus:
+    container_name: nexus3
+    depends_on:
+      - vpn
+    image: sonatype/nexus3:latest
+    network_mode: service:vpn
+    restart: always
+    volumes:
+      - "nexus-data:/sonatype-work"
+
+networks:
+  mynetwork:
+volumes:
+  nexus-data: {}
